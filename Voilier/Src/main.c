@@ -93,8 +93,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
+	int alarm_accu = 0;
+  int alarm_rotation = 0;
+	uint8_t alert_message_accu[40] = "Attention grosses vagues.\n\r";
+	uint8_t alert_message_rotation[40] = "Attention batterie presque vide.\n\r";
+	/* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
 
@@ -134,9 +137,19 @@ int main(void)
 		
   /* USER CODE BEGIN 3 */
 	// Code de la logique du voilier
+
 		
 		
 	// Maj des sorties (Pierre / Paul)
+	 
+	 // Envoi du message d'alarme
+		if (alarm_rotation) {
+			HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_rotation,sizeof(alert_message_rotation),(1<<28) -1);
+	  }
+	 
+	 if (alarm_accu) {
+		 	HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_accu, sizeof(alert_message_accu),(1<<28) -1);
+		}
   }
   /* USER CODE END 3 */
 
