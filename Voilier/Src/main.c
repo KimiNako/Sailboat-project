@@ -79,7 +79,17 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+//Fonction d'interruption : GPIO reçoit un front montant, il reset le timer
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	if (GPIO_Pin==GPIO_PIN_5){
+		htim3.Instance->CNT=0;
+	}
+}
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	HAL_ADC_Start(&hadc1);
+}
 /* USER CODE END 0 */
 
 /**
@@ -90,8 +100,11 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
+	int alarm_accu = 0;
+  int alarm_rotation = 0;
+	uint8_t alert_message_accu[40] = "Attention grosses vagues.\n\r";
+	uint8_t alert_message_rotation[40] = "Attention batterie presque vide.\n\r";
+	/* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
 
@@ -99,7 +112,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+	
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -117,6 +130,7 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_USART1_UART_Init();
+	NVIC_EnableIRQ(TIM2_IRQn);
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -140,9 +154,19 @@ int main(void)
 		
   /* USER CODE BEGIN 3 */
 	// Code de la logique du voilier
+
 		
 		
 	// Maj des sorties (Pierre / Paul)
+	 
+	 // Envoi du message d'alarme
+		if (alarm_rotation) {
+			HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_rotation,sizeof(alert_message_rotation),(1<<28) -1);
+	  }
+	 
+	 if (alarm_accu) {
+		 	HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_accu, sizeof(alert_message_accu),(1<<28) -1);
+		}
   }
   /* USER CODE END 3 */
 
