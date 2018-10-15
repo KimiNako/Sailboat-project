@@ -126,6 +126,16 @@ int main(void)
   while (1)
   {
 	// Lecture des entrées (Alicia / Pierre)
+		
+		int index, adc;
+		// Lecture de l'index de la girouette
+		index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
+		
+		// Lecture de l'ADC1 
+		adc = HAL_ADC_GetValue(&hadc1);
+		
+		
+		
   /* USER CODE END WHILE */
 		
   /* USER CODE BEGIN 3 */
