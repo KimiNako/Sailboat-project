@@ -95,6 +95,10 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	int alarm_accu = 0;
   int alarm_rotation = 0;
+	
+	int period_pwm_in = 0;
+	int duty_cycle_pwm_in = 0;
+	
 	uint8_t alert_message_accu[40] = "Attention grosses vagues.\n\r";
 	uint8_t alert_message_rotation[40] = "Attention batterie presque vide.\n\r";
 	/* USER CODE END 1 */
@@ -134,6 +138,9 @@ int main(void)
   {
 	// Lecture des entrées (Alicia / Pierre)
   /* USER CODE END WHILE */
+		
+	//lecture du PWM input sur TIM4CH1
+		period_pwm_in = htim4.Instance->CCR1;
 		
   /* USER CODE BEGIN 3 */
 	// Code de la logique du voilier
