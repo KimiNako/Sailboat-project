@@ -79,6 +79,13 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+//Fonction d'interruption : GPIO reçoit un front montant, il reset le timer
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	if (GPIO_Pin==GPIO_PIN_5){
+		htim3.Instance->CNT=0;
+	}
+}
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	HAL_ADC_Start(&hadc1);
