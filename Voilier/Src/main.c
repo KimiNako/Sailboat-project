@@ -79,7 +79,10 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	HAL_ADC_Start(&hadc1);
+}
 /* USER CODE END 0 */
 
 /**
@@ -99,7 +102,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+	
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -117,6 +120,7 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_USART1_UART_Init();
+	NVIC_EnableIRQ(TIM2_IRQn);
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
