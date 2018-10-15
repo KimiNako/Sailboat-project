@@ -1,0 +1,25 @@
+--cpu Cortex-M3
+"voilier\startup_stm32f103xb.o"
+"voilier\stm32f1xx_hal_rcc.o"
+"voilier\stm32f1xx_hal_flash.o"
+"voilier\stm32f1xx_hal_gpio_ex.o"
+"voilier\stm32f1xx_hal_gpio.o"
+"voilier\stm32f1xx_hal_tim.o"
+"voilier\stm32f1xx_hal_flash_ex.o"
+"voilier\stm32f1xx_hal_rcc_ex.o"
+"voilier\stm32f1xx_hal_adc.o"
+"voilier\stm32f1xx_hal_cortex.o"
+"voilier\stm32f1xx_hal_adc_ex.o"
+"voilier\stm32f1xx_hal_dma.o"
+"voilier\stm32f1xx_hal_tim_ex.o"
+"voilier\stm32f1xx_hal.o"
+"voilier\stm32f1xx_hal_uart.o"
+"voilier\stm32f1xx_hal_pwr.o"
+"voilier\system_stm32f1xx.o"
+"voilier\stm32f1xx_hal_msp.o"
+"voilier\stm32f1xx_it.o"
+"voilier\main.o"
+--library_type=microlib --strict --scatter "Voilier\Voilier.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "Voilier.map" -o Voilier\Voilier.axf
