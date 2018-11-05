@@ -109,8 +109,22 @@ typedef enum allure_t {
 	VentDebout,
 } Allure;
 
-void update_motor_command(Direction dir, TIM_HandleTypeDef pwm) {
-
+void update_motor_command(Direction dir, TIM_HandleTypeDef pwm, GPIO_TypeDef* gpio,int pin) {
+	switch (dir) {
+		case Neutral : {
+			break;
+		}
+		case Clockwise : {
+			pwm.Instance->CCR1 = pwm.Instance->ARR / 4;
+			HAL_GPIO_WritePin(gpio,pin,GPIO_PIN_RESET);
+			break;
+		}
+		case CounterClockwise : {
+			pwm.Instance->CCR1 = pwm.Instance->ARR / 4;
+			HAL_GPIO_WritePin(gpio,pin,GPIO_PIN_SET);
+			break;
+		}
+	}
 
 }
 /* USER CODE END 0 */
