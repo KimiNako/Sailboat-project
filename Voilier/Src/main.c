@@ -266,6 +266,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	HAL_TIM_IC_Start(&htim4, TIM_CHANNEL_2);
 	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
+	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
 
@@ -303,15 +304,11 @@ int main(void)
 		Allure al = val_encod_to_allure(index);
 		update_sevo_command(al, htim4);
 		//Rotation du plateau
-		update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2);
-	 
+		//update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2); currently debugging
+	 update_motor_command(CounterClockwise, htim2, GPIOA,GPIO_PIN_2);
 		
   /* USER CODE END WHILE */
 
-
-		
-		
-		
   /* USER CODE BEGIN 3 */
 	// Code de la logique du voilier
 		
@@ -524,7 +521,7 @@ static void MX_TIM3_Init(void)
   htim3.Init.Period = 0;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
