@@ -210,6 +210,17 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 		return Neutral;
 };
 
+int accelero_angle (int x, int y) {
+	// retourne 0 si l'angle est inférieur à 45 degrés
+	// retourne 1 sinon
+	
+	if (((float) y/(float)x) < 0.70) {
+		return 0;
+	}
+	else {
+		return 1;
+	}
+}
 
 /* USER CODE END 0 */
 
