@@ -191,16 +191,16 @@ Allure val_encod_to_allure(int val_encod) {
 }
 
 
-Direction decode_remote_signal(int duty_cycle) {
+Direction decode_remote_signal(int duty_cycle, TIM_HandleTypeDef pwm) {
 	//valeur mini = 1ms (correspond etat "Direction" = CounterClockwise)
 	//valeur neutre = 1.50ms
 	//valeur maxi = 2ms (Clockwise)
 	
-	float etat = duty_cycle*(htim4.Instance->PSC) / 72000000;
+	int etat = duty_cycle*(pwm.Instance->PSC);
 	
-	if (etat == 0.001)
+	if (etat <= 52740)
 		return CounterClockwise;
-	else if (etat == 0.002)
+	else if (etat >= 59940)
 		return Clockwise;
 	else
 		return Neutral;
@@ -291,6 +291,9 @@ int main(void)
 		
 		
 	// Maj des sorties (Pierre / Paul)
+	
+	//appel de la fonction d'update du moteur DC
+		update_motor_command(decode_remote_signal(duty_cycle_pwm_in, htim4), htim2, GPIOA,GPIO_PIN_2);
 	 
 	 // Envoi du message d'alarme
 		if (alarm_rotation) {
