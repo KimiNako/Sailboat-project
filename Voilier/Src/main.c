@@ -138,6 +138,10 @@ void update_motor_command(Direction dir, TIM_HandleTypeDef pwm, GPIO_TypeDef* gp
 void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 	int pwm_value = 0;
 	switch (al) {
+		case BonPlein : {
+			pwm_value = 0;
+		break;
+		}
 		case Pres : {
 			pwm_value = 0;
 			break;
