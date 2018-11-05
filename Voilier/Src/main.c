@@ -39,6 +39,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f1xx_hal.h"
+#include "stdio.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -173,7 +174,7 @@ void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 
 
 Allure val_encod_to_allure(int val_encod) {
- if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
+	if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
   return VentDebout;
  } else if ((32<= val_encod && val_encod<36) || (220<= val_encod && val_encod<224)){
 	 return Pres;
@@ -222,6 +223,17 @@ int warning_accelero_angle (int x, int y) {
 	}
 }
 
+//void Print (Allure al) {
+//	switch (al) {
+//		case BonPlein: printf("BonPlein"); break;
+//		case Pres: printf("Pres"); break;
+//		case Travers: printf("Travers"); break;
+//		case Largue: printf("Largue"); break;
+//		case GrandLargue: printf("GrandLargue"); break;
+//		case VentArriere: printf("VentArriere"); break;
+//		case VentDebout: printf("VentDebout"); break;
+//	}
+//}
 /* USER CODE END 0 */
 
 /**
@@ -285,10 +297,10 @@ int main(void)
   {
 		// Lecture des entrées 
 		
-		int index, batterie, accelero0, accelero1;
+		int index, batterie, accelero0, accelero1,val_encode;
 
 		// Lecture de l'index de la girouette
-		index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
+		//index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
 		
 		// Lecture de l'ADC1 
 		
@@ -312,11 +324,15 @@ int main(void)
 		alarm_rotation = warning_accelero_angle(accelero0, accelero1);
 		
 		//Bordage de la voile
-		Allure al = val_encod_to_allure(index);
+		val_encode = htim3.Instance->CNT;
+		Allure al = val_encod_to_allure(val_encode);
+	//	Print(al);
 		update_sevo_command(al, htim4);
 		//Rotation du plateau
-		update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2);
-	 //update_motor_command(CounterClockwise, htim2, GPIOA,GPIO_PIN_2);
+
+		//update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2); currently debugging
+	  update_motor_command(CounterClockwise, htim2, GPIOA,GPIO_PIN_2);
+
 		
   /* USER CODE END WHILE */
 
