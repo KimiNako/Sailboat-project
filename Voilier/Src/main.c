@@ -268,15 +268,13 @@ int main(void)
   {
 	// Lecture des entrées (Alicia / Pierre)
 		
-<<<<<<< HEAD
+
 		int index, batterie, accelero0, accelero1;
-=======
+
 		//lecture du PWM input sur TIM4CH1 
 		period_pwm_in = htim4.Instance->CCR1;
 		duty_cycle_pwm_in = htim4.Instance->CCR2;
-		
-		int index, adc;
->>>>>>> 1957232ba612aa396571d4589605109be1228e7d
+
 		// Lecture de l'index de la girouette
 		index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
 		
@@ -299,13 +297,12 @@ int main(void)
 		
   /* USER CODE END WHILE */
 		
-<<<<<<< HEAD
+
 	//lecture du PWM input sur TIM4CH1
 	//	period_pwm_in = htim4.Instance->CCR2;
 		//ici calcul a faire
-=======
-	
->>>>>>> 1957232ba612aa396571d4589605109be1228e7d
+
+
 		
 		
 		
