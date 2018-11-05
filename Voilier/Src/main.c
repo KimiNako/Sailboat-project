@@ -225,7 +225,7 @@ int main(void)
 	
 	uint8_t alert_message_accu[40] = "Attention batterie presque vide.\n\r";
 	uint8_t alert_message_rotation[40] = "Attention grosses vagues.\n\r";
-	/* USER CODE END 1 */
+  /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
 
@@ -251,9 +251,8 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_USART1_UART_Init();
-	NVIC_EnableIRQ(TIM2_IRQn);
   /* USER CODE BEGIN 2 */
-	
+	HAL_TIM_IC_Start(&htim4, TIM_CHANNEL_2);
 	
 
   /* USER CODE END 2 */
@@ -269,8 +268,6 @@ int main(void)
 		duty_cycle_pwm_in = htim4.Instance->CCR2;
 		
 		int index, adc;
-		// Lecture de l'index de la girouette
-		index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
 		
 		// Lecture de l'ADC1 
 		adc = HAL_ADC_GetValue(&hadc1);
@@ -280,11 +277,7 @@ int main(void)
 		
 		
   /* USER CODE END WHILE */
-		
-	
-		
-		
-		
+
   /* USER CODE BEGIN 3 */
 	// Code de la logique du voilier
 	
