@@ -295,6 +295,10 @@ int main(void)
 		Allure al = val_encod_to_allure(index);
 		update_sevo_command(al, htim4);
 		
+		//Rotation du plateau
+		update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2);
+	 
+		
   /* USER CODE END WHILE */
 
 
@@ -303,14 +307,7 @@ int main(void)
 		
   /* USER CODE BEGIN 3 */
 	// Code de la logique du voilier
-	
 		
-		
-	// Maj des sorties (Pierre / Paul)
-	
-	//appel de la fonction d'update du moteur DC
-		update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2);
-	 
 	 // Envoi du message d'alarme
 		if (alarm_rotation) {
 			HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_rotation,sizeof(alert_message_rotation),(1<<28) -1);
