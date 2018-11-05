@@ -235,6 +235,8 @@ int main(void)
 	int alarm_accu = 0;
   int alarm_rotation = 0;
 	
+	int accu_init = 0xFFFF;
+	
 	uint8_t alert_message_accu[40] = "Attention batterie presque vide.\n\r";
 	uint8_t alert_message_rotation[40] = "Attention grosses vagues.\n\r";
   /* USER CODE END 1 */
@@ -293,6 +295,11 @@ int main(void)
 		//Batterie
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_batterie);
 		batterie = HAL_ADC_GetValue(&hadc1);
+		
+		// Mise à jour d'alarm_accu
+		if (((float)batterie/(float)accu_init) <= 0.8) {
+			alarm_accu =1;
+		}
 		
 		//Acceléromètre
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
