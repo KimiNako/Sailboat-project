@@ -101,6 +101,7 @@ typedef enum direction_t {
 
 // L'allure du bateau par rapport au vent
 typedef enum allure_t {
+	BonPlein,
 	Pres,
 	Travers,
 	Largue,
@@ -165,6 +166,47 @@ void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 	pwm.Instance->CCR1 = pwm_value;
 }
 
+
+Allure val_encod_to_allure(int val_encod) {
+ if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
+  return VentDebout;
+ } else if ((32<= val_encod && val_encod<36)){
+	 return Pres;
+ } else if (36<= val_encod && val_encod<43) {
+	 return BonPlein;
+ } else if (43<= val_encod && val_encod<85) {
+	return Travers;
+ } else if (85<=val_encod && val_encod<135) {
+	return GrandLargue;
+ } else if (135<= val_encod && val_encod<128) {
+	return VentArriere;
+ }	 
+	//256 -> un tour
+	//45°>vent debout>-45°
+	//45°<= près <50°
+	//50°<= bon plein<60°
+	//60<= x <120° travers/largue
+	// 120< <190 grand largue
+	// reste vent arrière
+}
+
+
+Direction decode_remote_signal(int duty_cycle) {
+	//valeur mini = 1ms (correspond etat "Direction" = CounterClockwise)
+	//valeur neutre = 1.50ms
+	//valeur maxi = 2ms (Clockwise)
+	
+	float etat = duty_cycle*(htim4.Instance->PSC) / 72000000;
+	
+	if (etat == 0.001)
+		return CounterClockwise;
+	else if (etat == 0.002)
+		return Clockwise;
+	else
+		return Neutral;
+};
+
+
 /* USER CODE END 0 */
 
 /**
@@ -212,11 +254,7 @@ int main(void)
 	NVIC_EnableIRQ(TIM2_IRQn);
   /* USER CODE BEGIN 2 */
 	
-	//lecture du PWM input sur TIM4CH1
 	
-		period_pwm_in = htim4.Instance->CCR1;
-		duty_cycle_pwm_in = htim4.Instance->CCR2;
-		//ici calcul a faire
 
   /* USER CODE END 2 */
 
@@ -226,12 +264,18 @@ int main(void)
   {
 	// Lecture des entrées (Alicia / Pierre)
 		
+		//lecture du PWM input sur TIM4CH1 
+		period_pwm_in = htim4.Instance->CCR1;
+		duty_cycle_pwm_in = htim4.Instance->CCR2;
+		
 		int index, adc;
 		// Lecture de l'index de la girouette
 		index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
 		
 		// Lecture de l'ADC1 
 		adc = HAL_ADC_GetValue(&hadc1);
+		
+		
 		
 		
 		
@@ -489,7 +533,7 @@ static void MX_TIM4_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 0;
+  htim4.Init.Prescaler = 1;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 0;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
