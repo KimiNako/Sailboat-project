@@ -138,6 +138,10 @@ void update_motor_command(Direction dir, TIM_HandleTypeDef pwm, GPIO_TypeDef* gp
 void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 	int pwm_value = 0;
 	switch (al) {
+		case BonPlein : {
+			pwm_value = 0;
+		break;
+		}
 		case Pres : {
 			pwm_value = 0;
 			break;
@@ -170,42 +174,53 @@ void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 Allure val_encod_to_allure(int val_encod) {
  if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
   return VentDebout;
- } else if ((32<= val_encod && val_encod<36)){
+ } else if ((32<= val_encod && val_encod<36) || (220<= val_encod && val_encod<224)){
 	 return Pres;
- } else if (36<= val_encod && val_encod<43) {
+ } else if ((36<= val_encod && val_encod<43) || (213<=val_encod && val_encod<220)){
 	 return BonPlein;
- } else if (43<= val_encod && val_encod<85) {
+ } else if ((43<= val_encod && val_encod<85) || (171<=val_encod && val_encod<213)){
 	return Travers;
- } else if (85<=val_encod && val_encod<135) {
+ } else if ((85<=val_encod && val_encod<121) || (135<=val_encod && val_encod<171)){
 	return GrandLargue;
- } else if (135<= val_encod && val_encod<128) {
+ } else {
 	return VentArriere;
  }	 
-	//256 -> un tour
-	//45°>vent debout>-45°
-	//45°<= près <50°
-	//50°<= bon plein<60°
-	//60<= x <120° travers/largue
-	// 120< <190 grand largue
-	// reste vent arrière
+	//256 -> un tour -> 1° <=> 0.7 bit 
+	//0<=vent debout <45° 360-315
+	//45°<= près <50° 315-310
+	//50°<= bon plein<60° 310-300
+	//60<= travers/largue <120° 300-240
+	// 120<= grand largue<170 240-190
+	// 170 <=vent arrière< 180 190-180
 }
 
 
-Direction decode_remote_signal(int duty_cycle) {
+Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 	//valeur mini = 1ms (correspond etat "Direction" = CounterClockwise)
 	//valeur neutre = 1.50ms
 	//valeur maxi = 2ms (Clockwise)
 	
-	float etat = duty_cycle*(htim4.Instance->PSC) / 72000000;
+	int etat = (pwm.Instance->CCR2)*(pwm.Instance->PSC);
 	
-	if (etat == 0.001)
+	if (etat <= 52740)
 		return CounterClockwise;
-	else if (etat == 0.002)
+	else if (etat >= 59940)
 		return Clockwise;
 	else
 		return Neutral;
 };
 
+int accelero_angle (int x, int y) {
+	// retourne 0 si l'angle est inférieur à 45 degrés
+	// retourne 1 sinon
+	
+	if (((float) y/(float)x) < 0.70) {
+		return 0;
+	}
+	else {
+		return 1;
+	}
+}
 
 /* USER CODE END 0 */
 
@@ -219,9 +234,6 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	int alarm_accu = 0;
   int alarm_rotation = 0;
-	
-	int period_pwm_in = 0;
-	int duty_cycle_pwm_in = 0;
 	
 	uint8_t alert_message_accu[40] = "Attention batterie presque vide.\n\r";
 	uint8_t alert_message_rotation[40] = "Attention grosses vagues.\n\r";
@@ -253,38 +265,56 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 	HAL_TIM_IC_Start(&htim4, TIM_CHANNEL_2);
-	
+	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
+
+	ADC_ChannelConfTypeDef ADC_channel_batterie = {ADC_CHANNEL_13,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
+	ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
+	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	// Lecture des entrées (Alicia / Pierre)
+		// Lecture des entrées 
 		
-		//lecture du PWM input sur TIM4CH1 
-		period_pwm_in = htim4.Instance->CCR1;
-		duty_cycle_pwm_in = htim4.Instance->CCR2;
-		
-		int index, adc;
+		int index, batterie, accelero0, accelero1;
+
+		// Lecture de l'index de la girouette
+		index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
 		
 		// Lecture de l'ADC1 
-		adc = HAL_ADC_GetValue(&hadc1);
 		
+		//Batterie
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_batterie);
+		batterie = HAL_ADC_GetValue(&hadc1);
 		
+		//Acceléromètre
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		accelero0 = HAL_ADC_GetValue(&hadc1);
 		
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
+		accelero1 = HAL_ADC_GetValue(&hadc1);
 		
+		//Bordage de la voile
+		Allure al = val_encod_to_allure(index);
+		update_sevo_command(al, htim4);
+		//Rotation du plateau
+		update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2);
+	 
 		
   /* USER CODE END WHILE */
 
+
+		
+		
+		
   /* USER CODE BEGIN 3 */
 	// Code de la logique du voilier
-	
 		
-		
-	// Maj des sorties (Pierre / Paul)
-	 
 	 // Envoi du message d'alarme
 		if (alarm_rotation) {
 			HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_rotation,sizeof(alert_message_rotation),(1<<28) -1);
