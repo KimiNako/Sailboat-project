@@ -256,6 +256,10 @@ int main(void)
 	
 	
 
+	ADC_ChannelConfTypeDef ADC_channel_batterie = {ADC_CHANNEL_13,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
+	ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
+	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -264,24 +268,44 @@ int main(void)
   {
 	// Lecture des entrées (Alicia / Pierre)
 		
+<<<<<<< HEAD
+		int index, batterie, accelero0, accelero1;
+=======
 		//lecture du PWM input sur TIM4CH1 
 		period_pwm_in = htim4.Instance->CCR1;
 		duty_cycle_pwm_in = htim4.Instance->CCR2;
 		
 		int index, adc;
+>>>>>>> 1957232ba612aa396571d4589605109be1228e7d
 		// Lecture de l'index de la girouette
 		index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
 		
-		// Lecture de l'ADC1 
-		adc = HAL_ADC_GetValue(&hadc1);
 		
+		// Lecture de l'ADC1 
+		
+		//Batterie
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_batterie);
+		batterie = HAL_ADC_GetValue(&hadc1);
+		
+		//Acceléromètre
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		accelero0 = HAL_ADC_GetValue(&hadc1);
+		
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
+		accelero1 = HAL_ADC_GetValue(&hadc1);
 		
 		
 		
 		
   /* USER CODE END WHILE */
 		
+<<<<<<< HEAD
+	//lecture du PWM input sur TIM4CH1
+	//	period_pwm_in = htim4.Instance->CCR2;
+		//ici calcul a faire
+=======
 	
+>>>>>>> 1957232ba612aa396571d4589605109be1228e7d
 		
 		
 		
