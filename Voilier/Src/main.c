@@ -138,6 +138,10 @@ void update_motor_command(Direction dir, TIM_HandleTypeDef pwm, GPIO_TypeDef* gp
 void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 	int pwm_value = 0;
 	switch (al) {
+		case BonPlein : {
+			pwm_value = 0;
+		break;
+		}
 		case Pres : {
 			pwm_value = 0;
 			break;
@@ -170,24 +174,24 @@ void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 Allure val_encod_to_allure(int val_encod) {
  if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
   return VentDebout;
- } else if ((32<= val_encod && val_encod<36)){
+ } else if ((32<= val_encod && val_encod<36) || (220<= val_encod && val_encod<224)){
 	 return Pres;
- } else if (36<= val_encod && val_encod<43) {
+ } else if ((36<= val_encod && val_encod<43) || (213<=val_encod && val_encod<220)){
 	 return BonPlein;
- } else if (43<= val_encod && val_encod<85) {
+ } else if ((43<= val_encod && val_encod<85) || (171<=val_encod && val_encod<213)){
 	return Travers;
- } else if (85<=val_encod && val_encod<135) {
+ } else if ((85<=val_encod && val_encod<121) || (135<=val_encod && val_encod<171)){
 	return GrandLargue;
- } else if (135<= val_encod && val_encod<128) {
+ } else {
 	return VentArriere;
  }	 
-	//256 -> un tour
-	//45°>vent debout>-45°
-	//45°<= près <50°
-	//50°<= bon plein<60°
-	//60<= x <120° travers/largue
-	// 120< <190 grand largue
-	// reste vent arrière
+	//256 -> un tour -> 1° <=> 0.7 bit 
+	//0<=vent debout <45° 360-315
+	//45°<= près <50° 315-310
+	//50°<= bon plein<60° 310-300
+	//60<= travers/largue <120° 300-240
+	// 120<= grand largue<170 240-190
+	// 170 <=vent arrière< 180 190-180
 }
 
 
@@ -256,6 +260,10 @@ int main(void)
 	
 	
 
+	ADC_ChannelConfTypeDef ADC_channel_batterie = {ADC_CHANNEL_13,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
+	ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
+	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -264,24 +272,41 @@ int main(void)
   {
 	// Lecture des entrées (Alicia / Pierre)
 		
+
+		int index, batterie, accelero0, accelero1;
+
 		//lecture du PWM input sur TIM4CH1 
 		period_pwm_in = htim4.Instance->CCR1;
 		duty_cycle_pwm_in = htim4.Instance->CCR2;
-		
-		int index, adc;
+
 		// Lecture de l'index de la girouette
 		index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
 		
-		// Lecture de l'ADC1 
-		adc = HAL_ADC_GetValue(&hadc1);
 		
+		// Lecture de l'ADC1 
+		
+		//Batterie
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_batterie);
+		batterie = HAL_ADC_GetValue(&hadc1);
+		
+		//Acceléromètre
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		accelero0 = HAL_ADC_GetValue(&hadc1);
+		
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
+		accelero1 = HAL_ADC_GetValue(&hadc1);
 		
 		
 		
 		
   /* USER CODE END WHILE */
 		
-	
+
+	//lecture du PWM input sur TIM4CH1
+	//	period_pwm_in = htim4.Instance->CCR2;
+		//ici calcul a faire
+
+
 		
 		
 		
