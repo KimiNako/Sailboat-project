@@ -119,15 +119,16 @@ typedef enum allure_t {
 void update_motor_command(Direction dir, TIM_HandleTypeDef pwm, GPIO_TypeDef* gpio,int pin) {
 	switch (dir) {
 		case Neutral : {
+			pwm.Instance->CCR2 = 0;
 			break;
 		}
 		case Clockwise : {
-			pwm.Instance->CCR2 = pwm.Instance->ARR / 4;
+			pwm.Instance->CCR2 = pwm.Instance->ARR;
 			HAL_GPIO_WritePin(gpio,pin,GPIO_PIN_RESET);
 			break;
 		}
 		case CounterClockwise : {
-			pwm.Instance->CCR2 = pwm.Instance->ARR / 4;
+			pwm.Instance->CCR2 = pwm.Instance->ARR;
 			HAL_GPIO_WritePin(gpio,pin,GPIO_PIN_SET);
 			break;
 		}
@@ -200,11 +201,10 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 	//valeur neutre = 1.50ms
 	//valeur maxi = 2ms (Clockwise)
 	
-	int etat = (pwm.Instance->CCR2)*(pwm.Instance->PSC);
-	
-	if (etat <= 52740)
+	int etat = (pwm.Instance->CCR1)*(pwm.Instance->PSC + 1);
+	if (etat >= 0x16000)
 		return CounterClockwise;
-	else if (etat >= 59940)
+	else if (etat <= 0x11000)
 		return Clockwise;
 	else
 		return Neutral;
@@ -269,7 +269,8 @@ int main(void)
 	HAL_TIM_IC_Start(&htim4, TIM_CHANNEL_2);
 	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-	//HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+	htim4.Instance->CCER |= TIM_CCER_CC1E;
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
 
 
 	ADC_ChannelConfTypeDef ADC_channel_batterie = {ADC_CHANNEL_13,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
@@ -314,8 +315,8 @@ int main(void)
 		Allure al = val_encod_to_allure(index);
 		update_sevo_command(al, htim4);
 		//Rotation du plateau
-		//update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2); currently debugging
-	 update_motor_command(CounterClockwise, htim2, GPIOA,GPIO_PIN_2);
+		update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2);
+	 //update_motor_command(CounterClockwise, htim2, GPIOA,GPIO_PIN_2);
 		
   /* USER CODE END WHILE */
 
@@ -574,8 +575,8 @@ static void MX_TIM4_Init(void)
   }
 
   sSlaveConfig.SlaveMode = TIM_SLAVEMODE_RESET;
-  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
-  sSlaveConfig.TriggerPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sSlaveConfig.InputTrigger = TIM_TS_TI2FP2;
+  sSlaveConfig.TriggerPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
   sSlaveConfig.TriggerPrescaler = TIM_ICPSC_DIV1;
   sSlaveConfig.TriggerFilter = 0;
   if (HAL_TIM_SlaveConfigSynchronization(&htim4, &sSlaveConfig) != HAL_OK)
@@ -584,7 +585,7 @@ static void MX_TIM4_Init(void)
   }
 
   sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
-  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICSelection = TIM_ICSELECTION_INDIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
   sConfigIC.ICFilter = 0;
   if (HAL_TIM_IC_ConfigChannel(&htim4, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
@@ -593,7 +594,7 @@ static void MX_TIM4_Init(void)
   }
 
   sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
-  sConfigIC.ICSelection = TIM_ICSELECTION_INDIRECTTI;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   if (HAL_TIM_IC_ConfigChannel(&htim4, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
