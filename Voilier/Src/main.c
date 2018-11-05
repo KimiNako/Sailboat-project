@@ -109,10 +109,62 @@ typedef enum allure_t {
 	VentDebout,
 } Allure;
 
-void update_motor_command(Direction dir, TIM_HandleTypeDef pwm) {
-
-
+// Prends en entrée :
+// * une direction
+// * un timer
+// * un bloc gpio
+// * un pin
+// Cette fonction mets ensuite à jour la consigne donnée en moteur en fonction de la direction fournie.
+void update_motor_command(Direction dir, TIM_HandleTypeDef pwm, GPIO_TypeDef* gpio,int pin) {
+	switch (dir) {
+		case Neutral : {
+			break;
+		}
+		case Clockwise : {
+			pwm.Instance->CCR2 = pwm.Instance->ARR / 4;
+			HAL_GPIO_WritePin(gpio,pin,GPIO_PIN_RESET);
+			break;
+		}
+		case CounterClockwise : {
+			pwm.Instance->CCR2 = pwm.Instance->ARR / 4;
+			HAL_GPIO_WritePin(gpio,pin,GPIO_PIN_SET);
+			break;
+		}
+	}
 }
+
+// Prends en entrée une allure et configure la position du servomoteur pour border la voile.
+void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
+	int pwm_value = 0;
+	switch (al) {
+		case Pres : {
+			pwm_value = 0;
+			break;
+		}
+		case Travers : {
+			pwm_value = 0;
+		break;
+		}
+		case Largue : {
+			pwm_value = 0;
+		break;
+		}
+		case GrandLargue : {
+			pwm_value = 0;
+		break;
+		}
+		case VentArriere : {
+			pwm_value = 0;
+		break;
+		}
+		case VentDebout : {
+			pwm_value = 0;
+		break;
+		}
+	}
+	pwm.Instance->CCR1 = pwm_value;
+}
+
 
 Direction decode_remote_signal(int duty_cycle) {
 	//valeur mini = 1ms (correspond etat "Direction" = CounterClockwise)
@@ -128,6 +180,7 @@ Direction decode_remote_signal(int duty_cycle) {
 	else
 		return Neutral;
 };
+
 /* USER CODE END 0 */
 
 /**
