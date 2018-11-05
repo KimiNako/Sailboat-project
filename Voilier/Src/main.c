@@ -93,20 +93,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 
 // La direction dans laquelle doit tourner le plateau
-enum Direction {
+typedef enum direction_t {
 	Neutral,
 	Clockwise,
 	CounterClockwise
-}
+} Direction;
 
 // L'allure du bateau par rapport au vent
-enum Allure {
+typedef enum allure_t {
 	Pres,
 	Travers,
 	Largue,
 	GrandLargue,
 	VentArriere,
 	VentDebout,
+} Allure;
+
+void update_motor_command(Direction dir, TIM_HandleTypeDef pwm) {
+
+
 }
 /* USER CODE END 0 */
 
