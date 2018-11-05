@@ -101,6 +101,7 @@ typedef enum direction_t {
 
 // L'allure du bateau par rapport au vent
 typedef enum allure_t {
+	BonPlein,
 	Pres,
 	Travers,
 	Largue,
@@ -112,6 +113,29 @@ typedef enum allure_t {
 void update_motor_command(Direction dir, TIM_HandleTypeDef pwm) {
 
 
+}
+
+Allure val_encod_to_allure(int val_encod) {
+ if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
+  return VentDebout;
+ } else if ((32<= val_encod && val_encod<36)){
+	 return Pres;
+ } else if (36<= val_encod && val_encod<43) {
+	 return BonPlein;
+ } else if (43<= val_encod && val_encod<85) {
+	return Travers;
+ } else if (85<=val_encod && val_encod<135) {
+	return GrandLargue;
+ } else if (135<= val_encod && val_encod<128) {
+	return VentArriere;
+ }	 
+	//256 -> un tour
+	//45°>vent debout>-45°
+	//45°<= près <50°
+	//50°<= bon plein<60°
+	//60<= x <120° travers/largue
+	// 120< <190 grand largue
+	// reste vent arrière
 }
 /* USER CODE END 0 */
 
