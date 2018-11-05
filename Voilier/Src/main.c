@@ -195,12 +195,12 @@ Allure val_encod_to_allure(int val_encod) {
 }
 
 
-Direction decode_remote_signal(int duty_cycle, TIM_HandleTypeDef pwm) {
+Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 	//valeur mini = 1ms (correspond etat "Direction" = CounterClockwise)
 	//valeur neutre = 1.50ms
 	//valeur maxi = 2ms (Clockwise)
 	
-	int etat = duty_cycle*(pwm.Instance->PSC);
+	int etat = (pwm.Instance->CCR2)*(pwm.Instance->PSC);
 	
 	if (etat <= 52740)
 		return CounterClockwise;
@@ -275,10 +275,6 @@ int main(void)
 
 		int index, batterie, accelero0, accelero1;
 
-		//lecture du PWM input sur TIM4CH1 
-		period_pwm_in = htim4.Instance->CCR1;
-		duty_cycle_pwm_in = htim4.Instance->CCR2;
-
 		// Lecture de l'index de la girouette
 		index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
 		
@@ -300,11 +296,6 @@ int main(void)
 		
 		
   /* USER CODE END WHILE */
-		
-
-	//lecture du PWM input sur TIM4CH1
-	//	period_pwm_in = htim4.Instance->CCR2;
-		//ici calcul a faire
 
 
 		
@@ -318,7 +309,7 @@ int main(void)
 	// Maj des sorties (Pierre / Paul)
 	
 	//appel de la fonction d'update du moteur DC
-		update_motor_command(decode_remote_signal(duty_cycle_pwm_in, htim4), htim2, GPIOA,GPIO_PIN_2);
+		update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2);
 	 
 	 // Envoi du message d'alarme
 		if (alarm_rotation) {
