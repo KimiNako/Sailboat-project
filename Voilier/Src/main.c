@@ -170,24 +170,24 @@ void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 Allure val_encod_to_allure(int val_encod) {
  if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
   return VentDebout;
- } else if ((32<= val_encod && val_encod<36)){
+ } else if ((32<= val_encod && val_encod<36) || (220<= val_encod && val_encod<224)){
 	 return Pres;
- } else if (36<= val_encod && val_encod<43) {
+ } else if ((36<= val_encod && val_encod<43) || (213<=val_encod && val_encod<220)){
 	 return BonPlein;
- } else if (43<= val_encod && val_encod<85) {
+ } else if ((43<= val_encod && val_encod<85) || (171<=val_encod && val_encod<213)){
 	return Travers;
- } else if (85<=val_encod && val_encod<135) {
+ } else if ((85<=val_encod && val_encod<121) || (135<=val_encod && val_encod<171)){
 	return GrandLargue;
- } else if (135<= val_encod && val_encod<128) {
+ } else {
 	return VentArriere;
  }	 
-	//256 -> un tour
-	//45°>vent debout>-45°
-	//45°<= près <50°
-	//50°<= bon plein<60°
-	//60<= x <120° travers/largue
-	// 120< <190 grand largue
-	// reste vent arrière
+	//256 -> un tour -> 1° <=> 0.7 bit 
+	//0<=vent debout <45° 360-315
+	//45°<= près <50° 315-310
+	//50°<= bon plein<60° 310-300
+	//60<= travers/largue <120° 300-240
+	// 120<= grand largue<170 240-190
+	// 170 <=vent arrière< 180 190-180
 }
 
 
