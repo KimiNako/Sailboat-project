@@ -166,7 +166,7 @@ void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 	pwm.Instance->CCR1 = pwm_value;
 }
 
-<<<<<<< HEAD
+
 Allure val_encod_to_allure(int val_encod) {
  if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
   return VentDebout;
@@ -189,7 +189,7 @@ Allure val_encod_to_allure(int val_encod) {
 	// 120< <190 grand largue
 	// reste vent arrière
 }
-=======
+
 
 Direction decode_remote_signal(int duty_cycle) {
 	//valeur mini = 1ms (correspond etat "Direction" = CounterClockwise)
@@ -206,7 +206,7 @@ Direction decode_remote_signal(int duty_cycle) {
 		return Neutral;
 };
 
->>>>>>> 16dabe958fba05a3d19c83aeb88a0068a7af2388
+
 /* USER CODE END 0 */
 
 /**
