@@ -214,7 +214,7 @@ int accelero_angle (int x, int y) {
 	// retourne 0 si l'angle est inférieur à 45 degrés
 	// retourne 1 sinon
 	
-	if (((float) y/(float)x) < 0.70) {
+	if (((float) x/(float)y) < 1.0) {
 		return 0;
 	}
 	else {
@@ -264,7 +264,7 @@ int main(void)
   MX_TIM4_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-	HAL_TIM_IC_Start(&htim4, TIM_CHANNEL_ALL);
+	HAL_TIM_IC_Start(&htim4, TIM_CHANNEL_2);
 	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	//HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
@@ -304,8 +304,8 @@ int main(void)
 		Allure al = val_encod_to_allure(index);
 		update_sevo_command(al, htim4);
 		//Rotation du plateau
-		update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2);
-	 
+		//update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2); currently debugging
+	 update_motor_command(CounterClockwise, htim2, GPIOA,GPIO_PIN_2);
 		
   /* USER CODE END WHILE */
 
