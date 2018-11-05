@@ -210,7 +210,7 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 		return Neutral;
 };
 
-int accelero_angle (int x, int y) {
+int warning_accelero_angle (int x, int y) {
 	// retourne 0 si l'angle est inférieur à 45 degrés
 	// retourne 1 sinon
 	
@@ -306,6 +306,9 @@ int main(void)
 		
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
 		accelero1 = HAL_ADC_GetValue(&hadc1);
+		
+		// Mise à jour d'alarm_rotation
+		alarm_rotation = warning_accelero_angle(accelero0, accelero1);
 		
 		//Bordage de la voile
 		Allure al = val_encod_to_allure(index);
