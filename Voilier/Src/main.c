@@ -224,9 +224,6 @@ int main(void)
 	int alarm_accu = 0;
   int alarm_rotation = 0;
 	
-	int period_pwm_in = 0;
-	int duty_cycle_pwm_in = 0;
-	
 	uint8_t alert_message_accu[40] = "Attention batterie presque vide.\n\r";
 	uint8_t alert_message_rotation[40] = "Attention grosses vagues.\n\r";
 	/* USER CODE END 1 */
