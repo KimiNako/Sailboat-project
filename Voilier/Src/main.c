@@ -113,6 +113,21 @@ void update_motor_command(Direction dir, TIM_HandleTypeDef pwm) {
 
 
 }
+
+Direction decode_remote_signal(int duty_cycle) {
+	//valeur mini = 1ms (correspond etat "Direction" = CounterClockwise)
+	//valeur neutre = 1.50ms
+	//valeur maxi = 2ms (Clockwise)
+	
+	float etat = duty_cycle*(htim4.Instance->PSC) / 72000000;
+	
+	if (etat == 0.001)
+		return CounterClockwise;
+	else if (etat == 0.002)
+		return Clockwise;
+	else
+		return Neutral;
+};
 /* USER CODE END 0 */
 
 /**
@@ -160,11 +175,7 @@ int main(void)
 	NVIC_EnableIRQ(TIM2_IRQn);
   /* USER CODE BEGIN 2 */
 	
-	//lecture du PWM input sur TIM4CH1
 	
-		period_pwm_in = htim4.Instance->CCR1;
-		duty_cycle_pwm_in = htim4.Instance->CCR2;
-		//ici calcul a faire
 
   /* USER CODE END 2 */
 
@@ -174,12 +185,18 @@ int main(void)
   {
 	// Lecture des entrées (Alicia / Pierre)
 		
+		//lecture du PWM input sur TIM4CH1 
+		period_pwm_in = htim4.Instance->CCR1;
+		duty_cycle_pwm_in = htim4.Instance->CCR2;
+		
 		int index, adc;
 		// Lecture de l'index de la girouette
 		index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
 		
 		// Lecture de l'ADC1 
 		adc = HAL_ADC_GetValue(&hadc1);
+		
+		
 		
 		
 		
@@ -437,7 +454,7 @@ static void MX_TIM4_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 0;
+  htim4.Init.Prescaler = 1;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 0;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
