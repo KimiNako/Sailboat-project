@@ -214,7 +214,7 @@ int accelero_angle (int x, int y) {
 	// retourne 0 si l'angle est inférieur à 45 degrés
 	// retourne 1 sinon
 	
-	if (((float) y/(float)x) < 0.70) {
+	if (((float) x/(float)y) < 1.0) {
 		return 0;
 	}
 	else {
