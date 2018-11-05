@@ -136,6 +136,12 @@ int main(void)
   MX_USART1_UART_Init();
 	NVIC_EnableIRQ(TIM2_IRQn);
   /* USER CODE BEGIN 2 */
+	
+	//lecture du PWM input sur TIM4CH1
+	
+		period_pwm_in = htim4.Instance->CCR1;
+		duty_cycle_pwm_in = htim4.Instance->CCR2;
+		//ici calcul a faire
 
   /* USER CODE END 2 */
 
@@ -156,15 +162,13 @@ int main(void)
 		
   /* USER CODE END WHILE */
 		
-	//lecture du PWM input sur TIM4CH1
-		period_pwm_in = htim4.Instance->CCR2;
-		//ici calcul a faire
+	
 		
 		
 		
   /* USER CODE BEGIN 3 */
 	// Code de la logique du voilier
-
+	
 		
 		
 	// Maj des sorties (Pierre / Paul)
