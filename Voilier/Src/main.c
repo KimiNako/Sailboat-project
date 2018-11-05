@@ -270,9 +270,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	// Lecture des entrées (Alicia / Pierre)
+		// Lecture des entrées 
 		
-
 		int index, batterie, accelero0, accelero1;
 
 		//lecture du PWM input sur TIM4CH1 
@@ -296,8 +295,9 @@ int main(void)
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
 		accelero1 = HAL_ADC_GetValue(&hadc1);
 		
-		
-		
+		//Bordage de la voile
+		Allure al = val_encod_to_allure(index);
+		update_sevo_command(al, htim4);
 		
   /* USER CODE END WHILE */
 		
