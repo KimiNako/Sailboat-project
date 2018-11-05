@@ -110,11 +110,63 @@ typedef enum allure_t {
 	VentDebout,
 } Allure;
 
-void update_motor_command(Direction dir, TIM_HandleTypeDef pwm) {
-
-
+// Prends en entrée :
+// * une direction
+// * un timer
+// * un bloc gpio
+// * un pin
+// Cette fonction mets ensuite à jour la consigne donnée en moteur en fonction de la direction fournie.
+void update_motor_command(Direction dir, TIM_HandleTypeDef pwm, GPIO_TypeDef* gpio,int pin) {
+	switch (dir) {
+		case Neutral : {
+			break;
+		}
+		case Clockwise : {
+			pwm.Instance->CCR2 = pwm.Instance->ARR / 4;
+			HAL_GPIO_WritePin(gpio,pin,GPIO_PIN_RESET);
+			break;
+		}
+		case CounterClockwise : {
+			pwm.Instance->CCR2 = pwm.Instance->ARR / 4;
+			HAL_GPIO_WritePin(gpio,pin,GPIO_PIN_SET);
+			break;
+		}
+	}
 }
 
+// Prends en entrée une allure et configure la position du servomoteur pour border la voile.
+void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
+	int pwm_value = 0;
+	switch (al) {
+		case Pres : {
+			pwm_value = 0;
+			break;
+		}
+		case Travers : {
+			pwm_value = 0;
+		break;
+		}
+		case Largue : {
+			pwm_value = 0;
+		break;
+		}
+		case GrandLargue : {
+			pwm_value = 0;
+		break;
+		}
+		case VentArriere : {
+			pwm_value = 0;
+		break;
+		}
+		case VentDebout : {
+			pwm_value = 0;
+		break;
+		}
+	}
+	pwm.Instance->CCR1 = pwm_value;
+}
+
+<<<<<<< HEAD
 Allure val_encod_to_allure(int val_encod) {
  if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
   return VentDebout;
@@ -137,6 +189,24 @@ Allure val_encod_to_allure(int val_encod) {
 	// 120< <190 grand largue
 	// reste vent arrière
 }
+=======
+
+Direction decode_remote_signal(int duty_cycle) {
+	//valeur mini = 1ms (correspond etat "Direction" = CounterClockwise)
+	//valeur neutre = 1.50ms
+	//valeur maxi = 2ms (Clockwise)
+	
+	float etat = duty_cycle*(htim4.Instance->PSC) / 72000000;
+	
+	if (etat == 0.001)
+		return CounterClockwise;
+	else if (etat == 0.002)
+		return Clockwise;
+	else
+		return Neutral;
+};
+
+>>>>>>> 16dabe958fba05a3d19c83aeb88a0068a7af2388
 /* USER CODE END 0 */
 
 /**
@@ -184,11 +254,7 @@ int main(void)
 	NVIC_EnableIRQ(TIM2_IRQn);
   /* USER CODE BEGIN 2 */
 	
-	//lecture du PWM input sur TIM4CH1
 	
-		period_pwm_in = htim4.Instance->CCR1;
-		duty_cycle_pwm_in = htim4.Instance->CCR2;
-		//ici calcul a faire
 
   /* USER CODE END 2 */
 
@@ -198,12 +264,18 @@ int main(void)
   {
 	// Lecture des entrées (Alicia / Pierre)
 		
+		//lecture du PWM input sur TIM4CH1 
+		period_pwm_in = htim4.Instance->CCR1;
+		duty_cycle_pwm_in = htim4.Instance->CCR2;
+		
 		int index, adc;
 		// Lecture de l'index de la girouette
 		index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
 		
 		// Lecture de l'ADC1 
 		adc = HAL_ADC_GetValue(&hadc1);
+		
+		
 		
 		
 		
@@ -461,7 +533,7 @@ static void MX_TIM4_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 0;
+  htim4.Init.Prescaler = 1;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 0;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
