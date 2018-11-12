@@ -40,11 +40,6 @@
 /* USER CODE BEGIN Includes */
 #include "main.h"
 #include "stm32f1xx_hal.h"
-#include "stdio.h"
-/* USER CODE END Includes */
-
-
-
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -83,11 +78,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if (GPIO_Pin==GPIO_PIN_5){
 		htim3.Instance->CNT=0;
 	}
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	HAL_ADC_Start(&hadc1);
 }
 
 // La direction dans laquelle doit tourner le plateau
@@ -205,7 +195,7 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 	int etat = (pwm.Instance->CCR1)*(pwm.Instance->PSC + 1);
 	if (etat >= 0x16000)
 		return CounterClockwise;
-	else if (etat <= 0x11000)
+	else if (etat <= 0x12000)
 		return Clockwise;
 	else
 		return Neutral;
@@ -286,8 +276,8 @@ int main(void)
 
 
 	ADC_ChannelConfTypeDef ADC_channel_batterie = {ADC_CHANNEL_13,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
-	ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
-	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
+	ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
+	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	
   /* USER CODE END 2 */
 
@@ -312,9 +302,11 @@ int main(void)
 		
 		//Acceléromètre
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		HAL_ADC_Start(&hadc1);
 		accelero0 = HAL_ADC_GetValue(&hadc1);
 		
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
+		HAL_ADC_Start(&hadc1);
 		accelero1 = HAL_ADC_GetValue(&hadc1);
 		
 		// Mise à jour d'alarm_rotation
@@ -327,8 +319,8 @@ int main(void)
 		update_sevo_command(al, htim4);
 		//Rotation du plateau
 
-		//update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2); currently debugging
-	  update_motor_command(CounterClockwise, htim2, GPIOA,GPIO_PIN_2);
+		update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2);
+	  //update_motor_command(CounterClockwise, htim2, GPIOA,GPIO_PIN_2);
 
 		
   /* USER CODE END WHILE */
@@ -670,8 +662,8 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : PA5 */
   GPIO_InitStruct.Pin = GPIO_PIN_5;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 }
