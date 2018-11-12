@@ -95,6 +95,9 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+
+int neutral_telecommand = 0;
+
 //Fonction d'interruption : GPIO reçoit un front montant, il reset le timer
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if (GPIO_Pin==GPIO_PIN_5){
@@ -215,12 +218,18 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 	//valeur maxi = 2ms (Clockwise)
 	
 	int etat = (pwm.Instance->CCR1)*(pwm.Instance->PSC + 1);
-	if (etat >= 0x16000)
-		return CounterClockwise;
-	else if (etat <= 0x12000)
-		return Clockwise;
-	else
+	int threshold = 0xF300;
+	int diff1 = (etat - neutral_telecommand) & 0xFFFF;
+	int diff2 = (neutral_telecommand - etat) & 0xFFFF;
+	if (diff1 < 0x6FFF) {
 		return Neutral;
+	}
+	else if (diff1 < 0xDFFF) {
+		return CounterClockwise;
+	}
+	else {
+		return Clockwise;
+	}
 };
 
 int warning_accelero_angle (int x, int y) {
@@ -300,6 +309,8 @@ int main(void)
 	ADC_ChannelConfTypeDef ADC_channel_batterie = {ADC_CHANNEL_13,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
 	ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
+	
+	neutral_telecommand = (htim4.Instance->CCR1)*(htim4.Instance->PSC + 1);
 	
   /* USER CODE END 2 */
 
