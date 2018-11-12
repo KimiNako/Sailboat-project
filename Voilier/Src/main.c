@@ -223,17 +223,6 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 		return Neutral;
 };
 
-int warning_accelero_angle (int x, int y) {
-	// retourne 0 si l'angle est inférieur à 45 degrés
-	// retourne 1 sinon
-	
-	if (((float) x/(float)y) < 1.0) {
-		return 0;
-	}
-	else {
-		return 1;
-	}
-}
 
 //void Print (Allure al) {
 //	switch (al) {
@@ -260,6 +249,7 @@ int main(void)
   int alarm_rotation = 0;
 	
 	int accu_limite = 0xccf4;
+	int init_accelero0, init_accelero1;
 	
 	uint8_t alert_message_accu[40] = "Attention batterie presque vide.\n\r";
 	uint8_t alert_message_rotation[40] = "Attention grosses vagues.\n\r";
@@ -301,6 +291,15 @@ int main(void)
 	ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	
+		//Save initial values of the accelometer
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		HAL_ADC_Start(&hadc1);
+		init_accelero0 = HAL_ADC_GetValue(&hadc1);
+		
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
+		HAL_ADC_Start(&hadc1);
+		init_accelero1 = HAL_ADC_GetValue(&hadc1);
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -332,7 +331,9 @@ int main(void)
 		accelero1 = HAL_ADC_GetValue(&hadc1);
 		
 		// Mise à jour d'alarm_rotation
-		alarm_rotation = warning_accelero_angle(accelero0, accelero1);
+		if (init_accelero0-accelero0>0x40 && init_accelero1-accelero1>0x40) {
+			alarm_rotation = 1;
+		}
 		
 		//Bordage de la voile
 		val_encode = htim3.Instance->CNT;
