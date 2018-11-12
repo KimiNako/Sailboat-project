@@ -147,6 +147,9 @@ void update_motor_command(Direction dir, TIM_HandleTypeDef pwm, GPIO_TypeDef* gp
 
 // Prends en entrée une allure et configure la position du servomoteur pour border la voile.
 void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
+	//100% = pwm.Instance->CCR1= (1/100)*pwm.Instance->ARR
+	
+	
 	int pwm_value = 0;
 	switch (al) {
 		case BonPlein : {
