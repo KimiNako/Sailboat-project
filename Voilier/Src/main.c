@@ -254,9 +254,11 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	int alarm_accu = 0;
   int alarm_rotation = 0;
+	int warning_rotation =0;
 	
 	int accu_limite = 0xccf4;
-	int init_accelero0, init_accelero1;
+	//int init_accelero0,
+	int	init_accelero1;
 	
 	uint8_t alert_message_accu[40] = "Attention batterie presque vide.\n\r";
 	uint8_t alert_message_rotation[40] = "Attention grosses vagues.\n\r";
@@ -318,7 +320,8 @@ int main(void)
   {
 		// Lecture des entrées 
 		
-		int batterie, accelero0, accelero1,val_encode;
+		//int accelero0;
+		int batterie, accelero1,val_encode;
 		
 		// Lecture de l'ADC1 
 		
@@ -346,11 +349,12 @@ int main(void)
 		
 		int diff = init_accelero1 - accelero1;
 		// Mise à jour d'alarm_rotation
-		if (diff > 0x70) {
+		if (diff > 0x70 && warning_rotation == 0) {
+			warning_rotation = 1;
 			alarm_rotation = 1;
 		}
 		else {
-			alarm_rotation = 0;
+			warning_rotation = 0;
 		}
 		
 		//Bordage de la voile
@@ -371,6 +375,7 @@ int main(void)
 		
 	 // Envoi du message d'alarme
 		if (alarm_rotation) {
+			alarm_rotation = 0;
 			HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_rotation,sizeof(alert_message_rotation),(1<<28) -1);
 	  }
 	 
