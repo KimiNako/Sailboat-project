@@ -255,9 +255,11 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	int alarm_accu = 0;
   int alarm_rotation = 0;
+	int warning_rotation =0;
 	
 	int accu_limite = 0xccf4;
-	int init_accelero0, init_accelero1;
+	//int init_accelero0,
+	int	init_accelero1;
 	
 	uint8_t alert_message_accu[40] = "Attention batterie presque vide.\n\r";
 	uint8_t alert_message_rotation[40] = "Attention grosses vagues.\n\r";
@@ -296,13 +298,13 @@ int main(void)
 
 
 	ADC_ChannelConfTypeDef ADC_channel_batterie = {ADC_CHANNEL_13,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
-	ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
+	//ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	
 		//Save initial values of the accelometer
-		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		/*HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
 		HAL_ADC_Start(&hadc1);
-		init_accelero0 = HAL_ADC_GetValue(&hadc1);
+		init_accelero0 = HAL_ADC_GetValue(&hadc1);*/
 		
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
 		HAL_ADC_Start(&hadc1);
@@ -321,23 +323,28 @@ int main(void)
   {
 		// Lecture des entrées 
 		
-		int batterie, accelero0, accelero1,val_encode;
+		//int accelero0;
+		int batterie, accelero1,val_encode;
 		
 		// Lecture de l'ADC1 
 		
 		//Batterie
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_batterie);
+		HAL_ADC_Start(&hadc1);
 		batterie = HAL_ADC_GetValue(&hadc1);
 		
 		// Mise à jour d'alarm_accu
 		if (batterie<=accu_limite) {
 			alarm_accu =1;
 		}
+		else {
+			alarm_accu = 0;
+		}
 		
 		//Acceléromètre
-		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		/*HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
 		HAL_ADC_Start(&hadc1);
-		accelero0 = HAL_ADC_GetValue(&hadc1);
+		accelero0 = HAL_ADC_GetValue(&hadc1);*/
 		
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
 		HAL_ADC_Start(&hadc1);
@@ -345,11 +352,12 @@ int main(void)
 		
 		int diff = init_accelero1 - accelero1;
 		// Mise à jour d'alarm_rotation
-		if (diff > 0x70) {
+		if (diff > 0x70 && warning_rotation == 0) {
+			warning_rotation = 1;
 			alarm_rotation = 1;
 		}
 		else {
-			alarm_rotation = 0;
+			warning_rotation = 0;
 		}
 		
 		//Bordage de la voile
@@ -370,6 +378,7 @@ int main(void)
 		
 	 // Envoi du message d'alarme
 		if (alarm_rotation) {
+			alarm_rotation = 0;
 			HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_rotation,sizeof(alert_message_rotation),(1<<28) -1);
 	  }
 	 
