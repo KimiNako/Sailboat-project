@@ -150,40 +150,41 @@ void update_motor_command(Direction dir, TIM_HandleTypeDef pwm, GPIO_TypeDef* gp
 
 // Prends en entrée une allure et configure la position du servomoteur pour border la voile.
 void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
-	//100% = pwm.Instance->CCR1= (1/100)*pwm.Instance->ARR
-	
-	
-	int pwm_value = 0;
-	switch (al) {
-		case BonPlein : {
-			pwm_value = 0;
-		break;
-		}
-		case Pres : {
-			pwm_value = 0;
-			break;
-		}
-		case Travers : {
-			pwm_value = 0;
-		break;
-		}
-		case Largue : {
-			pwm_value = 0;
-		break;
-		}
-		case GrandLargue : {
-			pwm_value = 0;
-		break;
-		}
-		case VentArriere : {
-			pwm_value = 0;
-		break;
-		}
-		case VentDebout : {
-			pwm_value = 0;
-		break;
-		}
-	}
+	//neutre (90° par rapport a la gauche) = pwm.Instance->CCR1= pwm.Instance->ARR/13
+	//Diviser ARR par 10 = trop grand
+	//13 ok mais pas au centre
+	int step = pwm.Instance->ARR/1000;
+	int pwm_value = step*80;
+//	switch (al) {
+//		case BonPlein : {
+//			pwm_value = pwm.Instance->ARR/13;
+//		break;
+//		}
+//		case Pres : {
+//			pwm_value = 0;
+//			break;
+//		}
+//		case Travers : {
+//			pwm_value = 0;
+//		break;
+//		}
+//		case Largue : {
+//			pwm_value = 0;
+//		break;
+//		}
+//		case GrandLargue : {
+//			pwm_value = 0;
+//		break;
+//		}
+//		case VentArriere : {
+//			pwm_value = 0;
+//		break;
+//		}
+//		case VentDebout : {
+//			pwm_value = 0;
+//		break;
+//		}
+//	}
 	pwm.Instance->CCR1 = pwm_value;
 }
 
@@ -221,7 +222,6 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 	//valeur maxi = 2ms (Clockwise)
 	
 	int etat = (pwm.Instance->CCR1)*(pwm.Instance->PSC + 1) &0xFFFF;
-	int threshold = 0xFF;
 	int diff = (etat - neutral_telecommand) & 0xFFFF;
 	if (diff < 0x3000) {
 		return Neutral;
@@ -373,7 +373,7 @@ int main(void)
 		val_encode = htim3.Instance->CNT;
 		Allure al = val_encod_to_allure(val_encode);
 	//	Print(al);
-		update_sevo_command(al, htim4);
+		//update_sevo_command(al, htim1);
 		//Rotation du plateau
 
 		update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2);
