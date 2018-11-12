@@ -37,14 +37,16 @@
   ******************************************************************************
   */
 /* Includes ------------------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 #include "main.h"
 #include "stm32f1xx_hal.h"
 #include "stdio.h"
-
-/* USER CODE BEGIN Includes */
-
 /* USER CODE END Includes */
 
+
+
+
+/* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 
@@ -54,12 +56,13 @@ TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart1;
-
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
-
 /* USER CODE END PV */
 
+
+
+                                
+
+/* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -71,16 +74,10 @@ static void MX_TIM4_Init(void);
 static void MX_USART1_UART_Init(void);
                                     
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-                                
-                                
-
-/* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
-
 /* USER CODE END PFP */
 
-/* USER CODE BEGIN 0 */
 
+/* USER CODE BEGIN 0 */
 //Fonction d'interruption : GPIO reçoit un front montant, il reset le timer
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if (GPIO_Pin==GPIO_PIN_5){
@@ -174,7 +171,9 @@ void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 
 
 Allure val_encod_to_allure(int val_encod) {
-	if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
+	if (val_encod > 65000) { 
+		val_encod -= (65535-255);
+	}	else if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
   return VentDebout;
  } else if ((32<= val_encod && val_encod<36) || (220<= val_encod && val_encod<224)){
 	 return Pres;
@@ -297,10 +296,7 @@ int main(void)
   {
 		// Lecture des entrées 
 		
-		int index, batterie, accelero0, accelero1,val_encode;
-
-		// Lecture de l'index de la girouette
-		//index = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
+		int batterie, accelero0, accelero1,val_encode;
 		
 		// Lecture de l'ADC1 
 		
