@@ -295,16 +295,16 @@ int main(void)
 
 
 	ADC_ChannelConfTypeDef ADC_channel_batterie = {ADC_CHANNEL_13,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
-	ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
+	//ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	
 		//Save the neutral value for the telecommand.
 		
 		neutral_telecommand = (htim4.Instance->CCR1)*(htim4.Instance->PSC + 1);
 		//Save initial values of the accelometer
-		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		/*HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
 		HAL_ADC_Start(&hadc1);
-		init_accelero0 = HAL_ADC_GetValue(&hadc1);
+		init_accelero0 = HAL_ADC_GetValue(&hadc1);*/
 		
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
 		HAL_ADC_Start(&hadc1);
@@ -330,11 +330,14 @@ int main(void)
 		if (batterie<=accu_limite) {
 			alarm_accu =1;
 		}
+		else {
+			alarm_accu = 0;
+		}
 		
 		//Acceléromètre
-		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		/*HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
 		HAL_ADC_Start(&hadc1);
-		accelero0 = HAL_ADC_GetValue(&hadc1);
+		accelero0 = HAL_ADC_GetValue(&hadc1);*/
 		
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
 		HAL_ADC_Start(&hadc1);
