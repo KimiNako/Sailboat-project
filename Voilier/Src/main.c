@@ -95,6 +95,9 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+
+int neutral_telecommand = 0;
+
 //Fonction d'interruption : GPIO reçoit un front montant, il reset le timer
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if (GPIO_Pin==GPIO_PIN_5){
@@ -217,26 +220,20 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 	//valeur neutre = 1.50ms
 	//valeur maxi = 2ms (Clockwise)
 	
-	int etat = (pwm.Instance->CCR1)*(pwm.Instance->PSC + 1);
-	if (etat >= 0x16000)
-		return CounterClockwise;
-	else if (etat <= 0x12000)
-		return Clockwise;
-	else
+	int etat = (pwm.Instance->CCR1)*(pwm.Instance->PSC + 1) &0xFFFF;
+	int threshold = 0xFF;
+	int diff = (etat - neutral_telecommand) & 0xFFFF;
+	if (diff < 0x3000) {
 		return Neutral;
-};
-
-int warning_accelero_angle (int x, int y) {
-	// retourne 0 si l'angle est inférieur à 45 degrés
-	// retourne 1 sinon
-	
-	if (((float) x/(float)y) < 1.0) {
-		return 0;
+	}
+	else if (diff > 0x7000) {
+		return Clockwise;
 	}
 	else {
-		return 1;
+		return CounterClockwise;
 	}
-}
+};
+
 
 //void Print (Allure al) {
 //	switch (al) {
@@ -261,8 +258,12 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	int alarm_accu = 0;
   int alarm_rotation = 0;
+	int warning_accu = 0;
+	int warning_rotation = 0;
 	
 	int accu_limite = 0xccf4;
+	//int init_accelero0,
+	int	init_accelero1;
 	
 	uint8_t alert_message_accu[40] = "Attention batterie presque vide.\n\r";
 	uint8_t alert_message_rotation[40] = "Attention grosses vagues.\n\r";
@@ -301,9 +302,23 @@ int main(void)
 
 
 	ADC_ChannelConfTypeDef ADC_channel_batterie = {ADC_CHANNEL_13,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
-	ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
+	//ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	
+		//Save initial values of the accelometer
+		/*HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		HAL_ADC_Start(&hadc1);
+		init_accelero0 = HAL_ADC_GetValue(&hadc1);*/
+		
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
+		HAL_ADC_Start(&hadc1);
+		init_accelero1 = HAL_ADC_GetValue(&hadc1);
+	
+		//Save the neutral value for the telecommand. We need to add a little bit of delay so that the value is very stable.
+	while ((htim4.Instance->CCR1)*(htim4.Instance->PSC + 1) < 4000) {}
+		for (int i = 0; i <1000000; i++) {}
+	neutral_telecommand = (htim4.Instance->CCR1)*(htim4.Instance->PSC + 1) & 0xFFFF;
+			
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -312,30 +327,47 @@ int main(void)
   {
 		// Lecture des entrées 
 		
-		int batterie, accelero0, accelero1,val_encode;
+		//int accelero0;
+		int batterie, accelero1,val_encode;
 		
 		// Lecture de l'ADC1 
 		
 		//Batterie
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_batterie);
+		HAL_ADC_Start(&hadc1);
 		batterie = HAL_ADC_GetValue(&hadc1);
 		
 		// Mise à jour d'alarm_accu
 		if (batterie<=accu_limite) {
-			alarm_accu =1;
+			if (warning_accu == 0) {
+				warning_accu = 1;
+				alarm_accu = 1;
+			}
+		}
+		else {
+			warning_accu = 0;
 		}
 		
 		//Acceléromètre
-		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		/*HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
 		HAL_ADC_Start(&hadc1);
-		accelero0 = HAL_ADC_GetValue(&hadc1);
+		accelero0 = HAL_ADC_GetValue(&hadc1);*/
 		
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
 		HAL_ADC_Start(&hadc1);
 		accelero1 = HAL_ADC_GetValue(&hadc1);
 		
+		int diff = init_accelero1 - accelero1;
 		// Mise à jour d'alarm_rotation
-		alarm_rotation = warning_accelero_angle(accelero0, accelero1);
+		if (diff > 0x70) {
+			if (warning_rotation == 0) {
+				warning_rotation = 1;
+				alarm_rotation = 1;
+			}
+		}
+		else {
+			warning_rotation = 0;
+		}
 		
 		//Bordage de la voile
 		val_encode = htim3.Instance->CNT;
@@ -355,10 +387,12 @@ int main(void)
 		
 	 // Envoi du message d'alarme
 		if (alarm_rotation) {
+			alarm_rotation = 0;
 			HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_rotation,sizeof(alert_message_rotation),(1<<28) -1);
 	  }
 	 
 	 if (alarm_accu) {
+			alarm_accu = 0;
 		 	HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_accu, sizeof(alert_message_accu),(1<<28) -1);
 		}
   }
