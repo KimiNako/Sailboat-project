@@ -237,7 +237,7 @@ int main(void)
 	int alarm_accu = 0;
   int alarm_rotation = 0;
 	
-	int accu_init = 0xFFFF;
+	int accu_limite = 0xccf4;
 	
 	uint8_t alert_message_accu[40] = "Attention batterie presque vide.\n\r";
 	uint8_t alert_message_rotation[40] = "Attention grosses vagues.\n\r";
@@ -296,7 +296,7 @@ int main(void)
 		batterie = HAL_ADC_GetValue(&hadc1);
 		
 		// Mise à jour d'alarm_accu
-		if (((float)batterie/(float)accu_init) <= 0.8) {
+		if (batterie<=accu_limite) {
 			alarm_accu =1;
 		}
 		
