@@ -173,7 +173,8 @@ void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 Allure val_encod_to_allure(int val_encod) {
 	if (val_encod > 65000) { 
 		val_encod -= (65535-255);
-	}	else if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
+	}
+	if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
   return VentDebout;
  } else if ((32<= val_encod && val_encod<36) || (220<= val_encod && val_encod<224)){
 	 return Pres;
