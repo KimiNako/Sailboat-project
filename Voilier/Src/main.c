@@ -218,9 +218,7 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 	//valeur maxi = 2ms (Clockwise)
 	
 	int etat = (pwm.Instance->CCR1)*(pwm.Instance->PSC + 1);
-	int threshold = 0xF300;
 	int diff1 = (etat - neutral_telecommand) & 0xFFFF;
-	int diff2 = (neutral_telecommand - etat) & 0xFFFF;
 	if (diff1 < 0x6FFF) {
 		return Neutral;
 	}
@@ -301,6 +299,7 @@ int main(void)
 	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	
 		//Save the neutral value for the telecommand.
+		
 		neutral_telecommand = (htim4.Instance->CCR1)*(htim4.Instance->PSC + 1);
 		//Save initial values of the accelometer
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
@@ -341,9 +340,13 @@ int main(void)
 		HAL_ADC_Start(&hadc1);
 		accelero1 = HAL_ADC_GetValue(&hadc1);
 		
+		int diff = init_accelero1 - accelero1;
 		// Mise à jour d'alarm_rotation
-		if (init_accelero0-accelero0>0x40 && init_accelero1-accelero1>0x40) {
+		if (diff > 0x70) {
 			alarm_rotation = 1;
+		}
+		else {
+			alarm_rotation = 0;
 		}
 		
 		//Bordage de la voile
