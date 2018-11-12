@@ -324,6 +324,7 @@ int main(void)
 		
 		//Batterie
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_batterie);
+		HAL_ADC_Start(&hadc1);
 		batterie = HAL_ADC_GetValue(&hadc1);
 		
 		// Mise à jour d'alarm_accu
