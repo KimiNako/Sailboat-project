@@ -254,7 +254,8 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	int alarm_accu = 0;
   int alarm_rotation = 0;
-	int warning_rotation =0;
+	int warning_accu = 0;
+	int warning_rotation = 0;
 	
 	int accu_limite = 0xccf4;
 	//int init_accelero0,
@@ -332,10 +333,13 @@ int main(void)
 		
 		// Mise à jour d'alarm_accu
 		if (batterie<=accu_limite) {
-			alarm_accu =1;
+			if (warning_accu == 0) {
+				warning_accu = 1;
+				alarm_accu = 1;
+			}
 		}
 		else {
-			alarm_accu = 0;
+			warning_accu = 0;
 		}
 		
 		//Acceléromètre
@@ -349,9 +353,11 @@ int main(void)
 		
 		int diff = init_accelero1 - accelero1;
 		// Mise à jour d'alarm_rotation
-		if (diff > 0x70 && warning_rotation == 0) {
-			warning_rotation = 1;
-			alarm_rotation = 1;
+		if (diff > 0x70) {
+			if (warning_rotation == 0) {
+				warning_rotation = 1;
+				alarm_rotation = 1;
+			}
 		}
 		else {
 			warning_rotation = 0;
@@ -380,6 +386,7 @@ int main(void)
 	  }
 	 
 	 if (alarm_accu) {
+			alarm_accu = 0;
 		 	HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_accu, sizeof(alert_message_accu),(1<<28) -1);
 		}
   }
