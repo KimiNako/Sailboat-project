@@ -217,16 +217,17 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 	//valeur neutre = 1.50ms
 	//valeur maxi = 2ms (Clockwise)
 	
-	int etat = (pwm.Instance->CCR1)*(pwm.Instance->PSC + 1);
-	int diff1 = (etat - neutral_telecommand) & 0xFFFF;
-	if (diff1 < 0x6FFF) {
+	int etat = (pwm.Instance->CCR1)*(pwm.Instance->PSC + 1) &0xFFFF;
+	int threshold = 0xFF;
+	int diff = (etat - neutral_telecommand) & 0xFFFF;
+	if (diff < 0x3000) {
 		return Neutral;
 	}
-	else if (diff1 < 0xDFFF) {
-		return CounterClockwise;
+	else if (diff > 0x7000) {
+		return Clockwise;
 	}
 	else {
-		return Clockwise;
+		return CounterClockwise;
 	}
 };
 
@@ -301,9 +302,6 @@ int main(void)
 	//ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	
-		//Save the neutral value for the telecommand.
-		
-		neutral_telecommand = (htim4.Instance->CCR1)*(htim4.Instance->PSC + 1);
 		//Save initial values of the accelometer
 		/*HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
 		HAL_ADC_Start(&hadc1);
@@ -313,6 +311,11 @@ int main(void)
 		HAL_ADC_Start(&hadc1);
 		init_accelero1 = HAL_ADC_GetValue(&hadc1);
 	
+		//Save the neutral value for the telecommand. We need to add a little bit of delay so that the value is very stable.
+	while ((htim4.Instance->CCR1)*(htim4.Instance->PSC + 1) < 4000) {}
+		for (int i = 0; i <1000000; i++) {}
+	neutral_telecommand = (htim4.Instance->CCR1)*(htim4.Instance->PSC + 1) & 0xFFFF;
+			
   /* USER CODE END 2 */
 
   /* Infinite loop */
