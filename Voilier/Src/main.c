@@ -114,10 +114,8 @@ typedef enum direction_t {
 
 // L'allure du bateau par rapport au vent
 typedef enum allure_t {
-	BonPlein,
-	//Pres, incertitude trop grande sur le cordage
+	BonPlein, 
 	Travers,
-	//Largue,
 	GrandLargue,
 	VentArriere,
 	VentDebout,
@@ -173,7 +171,6 @@ void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 			pwm_value = 0x0740;
 		break;
 		}
-		
 	}
 	pwm.Instance->CCR1 = pwm_value;
 }
@@ -185,10 +182,6 @@ Allure val_encod_to_allure(int val_encod) {
 	}
 	if ((0 <= val_encod && val_encod<45) || (315<=val_encod && val_encod<360)) {
   return VentDebout;
-
-// } else if ((45<= val_encod && val_encod<50) || (310<= val_encod && val_encod<315)){
-//	 return Pres;
-		
  } else if ((45<= val_encod && val_encod<60) || (300<=val_encod && val_encod<315)){
 	 return BonPlein;
  } else if ((60<= val_encod && val_encod<120) || (240<=val_encod && val_encod<300)){
@@ -197,22 +190,11 @@ Allure val_encod_to_allure(int val_encod) {
 	return GrandLargue;
  } else {
 	return VentArriere;
- }	 
-	//256 -> un tour -> 1° <=> 0.7 bit 
-	//0<=vent debout <45° 360-315
-	//45°<= près <50° 315-310
-	//50°<= bon plein<60° 310-300
-	//60<= travers/largue <120° 300-240
-	// 120<= grand largue<170 240-190
-	// 170 <=vent arrière< 180 190-180
+ }
 }
 
 
 Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
-	//valeur mini = 1ms (correspond etat "Direction" = CounterClockwise)
-	//valeur neutre = 1.50ms
-	//valeur maxi = 2ms (Clockwise)
-	
 	int etat = (pwm.Instance->CCR1)&0xFFFF;
 	int threshold = neutral_telecommand/3;
 	if (etat > (neutral_telecommand + threshold)) {
@@ -225,19 +207,6 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 		return Neutral;
 	}
 }
-
-
-//void Print (Allure al) {
-//	switch (al) {
-//		case BonPlein: printf("BonPlein"); break;
-//		case Pres: printf("Pres"); break;
-//		case Travers: printf("Travers"); break;
-//		case Largue: printf("Largue"); break;
-//		case GrandLargue: printf("GrandLargue"); break;
-//		case VentArriere: printf("VentArriere"); break;
-//		case VentDebout: printf("VentDebout"); break;
-//	}
-//}
 /* USER CODE END 0 */
 
 /**
