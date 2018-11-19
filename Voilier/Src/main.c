@@ -392,7 +392,9 @@ int main(void)
 	 // Envoi du message d'alarme
 		if (alarm_rotation) {
 			alarm_rotation = 0;
+			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_11,GPIO_PIN_SET);
 			HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_rotation,sizeof(alert_message_rotation),(1<<28) -1);
+			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_11,GPIO_PIN_RESET);
 	  }
 	 
 	 if (alarm_accu) {
