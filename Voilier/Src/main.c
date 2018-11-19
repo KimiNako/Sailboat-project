@@ -188,6 +188,7 @@ Allure val_encod_to_allure(int val_encod) {
 
 // } else if ((45<= val_encod && val_encod<50) || (310<= val_encod && val_encod<315)){
 //	 return Pres;
+		
  } else if ((45<= val_encod && val_encod<60) || (300<=val_encod && val_encod<315)){
 	 return BonPlein;
  } else if ((60<= val_encod && val_encod<120) || (240<=val_encod && val_encod<300)){
@@ -306,7 +307,7 @@ int main(void)
 		init_accelero1 = HAL_ADC_GetValue(&hadc1);
 	
 		//Save the neutral value for the telecommand. We need to add a little bit of delay so that the value is very stable.
-//	while ((htim4.Instance->CCR1)*(htim4.Instance->PSC + 1) < 4000) {}
+	while ((htim4.Instance->CCR1)*(htim4.Instance->PSC + 1) < 4000) {}
 		for (int i = 0; i <1000000; i++) {}
 	neutral_telecommand = (htim4.Instance->CCR1) & 0xFFFF;
   /* USER CODE END 2 */
