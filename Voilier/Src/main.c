@@ -101,7 +101,7 @@ int neutral_telecommand = 0;
 //Fonction d'interruption : GPIO reçoit un front montant, il reset le timer
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if (GPIO_Pin==GPIO_PIN_5){
-		htim3.Instance->CNT=0;
+		htim3.Instance->CNT=300;
 	}
 }
 
@@ -183,15 +183,16 @@ Allure val_encod_to_allure(int val_encod) {
 	if (val_encod > 65000) { 
 		val_encod -= (65535-255);
 	}
-	if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
+	if ((0 <= val_encod && val_encod<45) || (315<=val_encod && val_encod<360)) {
   return VentDebout;
- //} else if ((32<= val_encod && val_encod<36) || (220<= val_encod && val_encod<224)){
+
+// } else if ((45<= val_encod && val_encod<50) || (310<= val_encod && val_encod<315)){
 //	 return Pres;
- } else if ((32<= val_encod && val_encod<43) || (213<=val_encod && val_encod<224)){
+ } else if ((45<= val_encod && val_encod<60) || (300<=val_encod && val_encod<315)){
 	 return BonPlein;
- } else if ((43<= val_encod && val_encod<85) || (171<=val_encod && val_encod<213)){
+ } else if ((60<= val_encod && val_encod<120) || (240<=val_encod && val_encod<300)){
 	return Travers;
- } else if ((85<=val_encod && val_encod<121) || (135<=val_encod && val_encod<171)){
+ } else if ((120<=val_encod && val_encod<160) || (200<=val_encod && val_encod<240)){
 	return GrandLargue;
  } else {
 	return VentArriere;
@@ -211,18 +212,18 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 	//valeur neutre = 1.50ms
 	//valeur maxi = 2ms (Clockwise)
 	
-	int etat = (pwm.Instance->CCR1)*(pwm.Instance->PSC + 1) &0xFFFF;
-	int diff = (etat - neutral_telecommand) & 0xFFFF;
-	if (diff < 0x3000) {
-		return Neutral;
-	}
-	else if (diff > 0x7000) {
+	int etat = (pwm.Instance->CCR1)&0xFFFF;
+	int threshold = neutral_telecommand/3;
+	if (etat > (neutral_telecommand + threshold)) {
 		return Clockwise;
 	}
-	else {
+	else if (etat < (neutral_telecommand - threshold)) {
 		return CounterClockwise;
 	}
-};
+	else {
+		return Neutral;
+	}
+}
 
 
 //void Print (Allure al) {
@@ -307,8 +308,7 @@ int main(void)
 		//Save the neutral value for the telecommand. We need to add a little bit of delay so that the value is very stable.
 //	while ((htim4.Instance->CCR1)*(htim4.Instance->PSC + 1) < 4000) {}
 		for (int i = 0; i <1000000; i++) {}
-	neutral_telecommand = (htim4.Instance->CCR1)*(htim4.Instance->PSC + 1) & 0xFFFF;
-			
+	neutral_telecommand = (htim4.Instance->CCR1) & 0xFFFF;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -360,7 +360,7 @@ int main(void)
 		}
 		
 		//Bordage de la voile
-		val_encode = htim3.Instance->CNT;
+		val_encode = htim3.Instance->CCR1;
 		Allure al = val_encod_to_allure(val_encode);
 	
 		update_sevo_command(al, htim1);
@@ -581,12 +581,12 @@ static void MX_TIM3_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 0;
+  htim3.Init.Prescaler = 1;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 65535;
+  htim3.Init.Period = 359;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
