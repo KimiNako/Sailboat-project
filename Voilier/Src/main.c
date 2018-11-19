@@ -115,9 +115,9 @@ typedef enum direction_t {
 // L'allure du bateau par rapport au vent
 typedef enum allure_t {
 	BonPlein,
-	Pres,
+	//Pres, incertitude trop grande sur le cordage
 	Travers,
-	Largue,
+	//Largue,
 	GrandLargue,
 	VentArriere,
 	VentDebout,
@@ -150,37 +150,32 @@ void update_motor_command(Direction dir, TIM_HandleTypeDef pwm, GPIO_TypeDef* gp
 
 // Prends en entrée une allure et configure la position du servomoteur pour border la voile.
 void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
-	//100% = pwm.Instance->CCR1= (1/100)*pwm.Instance->ARR
 	
-	
-//	int pwm_value = 0;
-//	switch (al) {
-//		case BonPlein : {
-//			pwm_value = 0;
-//		break;
-//		}
-//		case Travers : {
-//			pwm_value = 0;
-//		break;
-//		}
-//		case Largue : {
-//			pwm_value = 0;
-//		break;
-//		}
-//		case GrandLargue : {
-//			pwm_value = 0;
-//		break;
-//		}
-//		case VentArriere : {
-//			pwm_value = 0;
-//		break;
-//		}
-//		case VentDebout : {
-//			pwm_value = 0;
-//		break;
-//		}
-//	}
-//	pwm.Instance->CCR1 = pwm_value;
+	int pwm_value =0x1140;
+	switch (al) {
+		case VentDebout : {
+			pwm_value = 0x1140;
+		break;
+		}
+		case BonPlein : {
+			pwm_value = 0x1040;
+		break;
+		}
+		case Travers : {
+			pwm_value = 0x0FF0;
+		break;
+		}
+		case GrandLargue : {
+			pwm_value = 0x0D80;
+		break;
+		}
+		case VentArriere : {
+			pwm_value = 0x0740;
+		break;
+		}
+		
+	}
+	pwm.Instance->CCR1 = pwm_value;
 }
 
 
@@ -190,9 +185,9 @@ Allure val_encod_to_allure(int val_encod) {
 	}
 	if ((0 <= val_encod && val_encod<32) || (224<=val_encod && val_encod<256)) {
   return VentDebout;
- } else if ((32<= val_encod && val_encod<36) || (220<= val_encod && val_encod<224)){
-	 return Pres;
- } else if ((36<= val_encod && val_encod<43) || (213<=val_encod && val_encod<220)){
+ //} else if ((32<= val_encod && val_encod<36) || (220<= val_encod && val_encod<224)){
+//	 return Pres;
+ } else if ((32<= val_encod && val_encod<43) || (213<=val_encod && val_encod<224)){
 	 return BonPlein;
  } else if ((43<= val_encod && val_encod<85) || (171<=val_encod && val_encod<213)){
 	return Travers;
@@ -217,7 +212,6 @@ Direction decode_remote_signal(TIM_HandleTypeDef pwm) {
 	//valeur maxi = 2ms (Clockwise)
 	
 	int etat = (pwm.Instance->CCR1)*(pwm.Instance->PSC + 1) &0xFFFF;
-	int threshold = 0xFF;
 	int diff = (etat - neutral_telecommand) & 0xFFFF;
 	if (diff < 0x3000) {
 		return Neutral;
@@ -311,7 +305,7 @@ int main(void)
 		init_accelero1 = HAL_ADC_GetValue(&hadc1);
 	
 		//Save the neutral value for the telecommand. We need to add a little bit of delay so that the value is very stable.
-	while ((htim4.Instance->CCR1)*(htim4.Instance->PSC + 1) < 4000) {}
+//	while ((htim4.Instance->CCR1)*(htim4.Instance->PSC + 1) < 4000) {}
 		for (int i = 0; i <1000000; i++) {}
 	neutral_telecommand = (htim4.Instance->CCR1)*(htim4.Instance->PSC + 1) & 0xFFFF;
 			
@@ -368,8 +362,8 @@ int main(void)
 		//Bordage de la voile
 		val_encode = htim3.Instance->CNT;
 		Allure al = val_encod_to_allure(val_encode);
-	//	Print(al);
-		update_sevo_command(al, htim4);
+	
+		update_sevo_command(al, htim1);
 		//Rotation du plateau
 
 		update_motor_command(decode_remote_signal(htim4), htim2, GPIOA,GPIO_PIN_2);
