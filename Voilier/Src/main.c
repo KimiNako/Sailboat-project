@@ -254,7 +254,7 @@ int main(void)
 	int warning_rotation = 0;
 	
 	int accu_limite = 0xccf4;
-	//int init_accelero0,
+	int init_accelero0;
 	int	init_accelero1;
 	
 	uint8_t alert_message_accu[40] = "Attention batterie presque vide.\n\r";
@@ -293,17 +293,19 @@ int main(void)
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
 
 
-	ADC_ChannelConfTypeDef ADC_channel_batterie = {ADC_CHANNEL_13,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
-	//ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
+	ADC_ChannelConfTypeDef ADC_channel_batterie = {ADC_CHANNEL_12,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_1CYCLE_5};
+	ADC_ChannelConfTypeDef ADC_channel_accelero0 = {ADC_CHANNEL_10,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	ADC_ChannelConfTypeDef ADC_channel_accelero1 = {ADC_CHANNEL_11,ADC_REGULAR_RANK_1,ADC_SAMPLETIME_28CYCLES_5};
 	
 		//Save initial values of the accelometer
-		/*HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
 		HAL_ADC_Start(&hadc1);
-		init_accelero0 = HAL_ADC_GetValue(&hadc1);*/
+		HAL_ADC_PollForConversion (&hadc1, 10);		
+		init_accelero0 = HAL_ADC_GetValue(&hadc1);
 		
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
 		HAL_ADC_Start(&hadc1);
+		HAL_ADC_PollForConversion (&hadc1, 10);		
 		init_accelero1 = HAL_ADC_GetValue(&hadc1);
 	
 		//Save the neutral value for the telecommand. We need to add a little bit of delay so that the value is very stable.
@@ -319,12 +321,13 @@ int main(void)
 		// Lecture des entrées 
 		
 		//int accelero0;
-		int batterie, accelero1,val_encode;
+		int batterie, accelero1, accelero0, val_encode;
 		
 		// Lecture de l'ADC1 
 		
 		//Batterie
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_batterie);
+		HAL_ADC_PollForConversion (&hadc1, 10);		
 		HAL_ADC_Start(&hadc1);
 		batterie = HAL_ADC_GetValue(&hadc1);
 		
@@ -340,17 +343,19 @@ int main(void)
 		}
 		
 		//Acceléromètre
-		/*HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
+		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero0);
 		HAL_ADC_Start(&hadc1);
-		accelero0 = HAL_ADC_GetValue(&hadc1);*/
+		HAL_ADC_PollForConversion (&hadc1, 10);		
+		accelero0 = HAL_ADC_GetValue(&hadc1);
 		
 		HAL_ADC_ConfigChannel(&hadc1, &ADC_channel_accelero1);
 		HAL_ADC_Start(&hadc1);
+		HAL_ADC_PollForConversion (&hadc1, 10);		
 		accelero1 = HAL_ADC_GetValue(&hadc1);
 		
-		int diff = init_accelero1 - accelero1;
+		int diff = (init_accelero1 - accelero1) & 0xFF;
 		// Mise à jour d'alarm_rotation
-		if (diff > 0x70) {
+		if (init_accelero1 - 0x90 > accelero1) {
 			if (warning_rotation == 0) {
 				warning_rotation = 1;
 				alarm_rotation = 1;
@@ -379,7 +384,9 @@ int main(void)
 	 // Envoi du message d'alarme
 		if (alarm_rotation) {
 			alarm_rotation = 0;
+			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_11,GPIO_PIN_SET);
 			HAL_UART_Transmit(&huart1,(uint8_t *) &alert_message_rotation,sizeof(alert_message_rotation),(1<<28) -1);
+			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_11,GPIO_PIN_RESET);
 	  }
 	 
 	 if (alarm_accu) {
@@ -669,7 +676,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
