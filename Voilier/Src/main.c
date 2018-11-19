@@ -153,38 +153,34 @@ void update_sevo_command(Allure al, TIM_HandleTypeDef pwm) {
 	//100% = pwm.Instance->CCR1= (1/100)*pwm.Instance->ARR
 	
 	
-	int pwm_value = 0;
-	switch (al) {
-		case BonPlein : {
-			pwm_value = 0;
-		break;
-		}
-		case Pres : {
-			pwm_value = 0;
-			break;
-		}
-		case Travers : {
-			pwm_value = 0;
-		break;
-		}
-		case Largue : {
-			pwm_value = 0;
-		break;
-		}
-		case GrandLargue : {
-			pwm_value = 0;
-		break;
-		}
-		case VentArriere : {
-			pwm_value = 0;
-		break;
-		}
-		case VentDebout : {
-			pwm_value = 0;
-		break;
-		}
-	}
-	pwm.Instance->CCR1 = pwm_value;
+//	int pwm_value = 0;
+//	switch (al) {
+//		case BonPlein : {
+//			pwm_value = 0;
+//		break;
+//		}
+//		case Travers : {
+//			pwm_value = 0;
+//		break;
+//		}
+//		case Largue : {
+//			pwm_value = 0;
+//		break;
+//		}
+//		case GrandLargue : {
+//			pwm_value = 0;
+//		break;
+//		}
+//		case VentArriere : {
+//			pwm_value = 0;
+//		break;
+//		}
+//		case VentDebout : {
+//			pwm_value = 0;
+//		break;
+//		}
+//	}
+//	pwm.Instance->CCR1 = pwm_value;
 }
 
 
